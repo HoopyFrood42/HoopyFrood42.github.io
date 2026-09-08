@@ -85,7 +85,20 @@ Scans all skin folders, auto-detects newly added `.svg` files, generates individ
 uv run python scripts/registry.py build
 ```
 
-### 2. Scaffold a New Skin
+### 2. Preview the HTML Locally
+Compiles all Markdown and layouts into `_site/` and launches a local web server, opening your browser automatically:
+
+```bash
+uv run python scripts/registry.py preview
+```
+*(Press `Ctrl+C` to stop the server)*
+
+To compile the static HTML files without launching a server:
+```bash
+uv run python scripts/registry.py build-html
+```
+
+### 3. Scaffold a New Skin
 Creates a new directory in `skins/<slug>/` with boilerplate frontmatter, placeholder CSS, and SVG folders:
 
 ```bash

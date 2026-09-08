@@ -8,11 +8,17 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import http.server
 import json
+import os
 import re
+import shutil
+import socketserver
+import webbrowser
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+import markdown
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -401,12 +407,198 @@ def cmd_validate() -> None:
     print(f"Validation finished: {errors} error(s), {warnings} warning(s).")
 
 
+def render_liquid_simple(template: str, context: Dict[str, Any], content: str) -> str:
+    """Lightweight Liquid template renderer for local HTML previewing."""
+    html = template
+    page_title = context.get("title", "")
+    page_url = context.get("url", "/")
+    site_title = context.get("site_title", "Fjord's resources")
+    site_desc = context.get("site_description", "")
+    page_desc = context.get("description", site_desc)
+
+    title_tag_content = f"{page_title} | {site_title}" if page_title else site_title
+    html = re.sub(
+        r"\{%\s*if\s+page\.title\s*%\}.*?\{%\s*endif\s*%\}",
+        title_tag_content,
+        html,
+        flags=re.DOTALL,
+    )
+    html = re.sub(
+        r"\{%\s*if\s+page\.description\s*%\}.*?\{%\s*endif\s*%\}",
+        page_desc,
+        html,
+        flags=re.DOTALL,
+    )
+    html = re.sub(
+        r"\{%\s*if\s+site\.description\s*%\}(.*?)\{%\s*endif\s*%\}",
+        rf"\1" if site_desc else "",
+        html,
+        flags=re.DOTALL,
+    )
+
+    # Evaluate page.url active nav conditions
+    def eval_url_condition(match: re.Match) -> str:
+        condition = match.group(1).strip()
+        body = match.group(2)
+        if "page.url == '/'" in condition or "page.url == '/index.html'" in condition:
+            if page_url in ("/", "/index.html", ""):
+                return body
+        if "contains '/skins'" in condition:
+            if "/skins" in page_url:
+                return body
+        if "contains '/resources'" in condition:
+            if "/resources" in page_url:
+                return body
+        return ""
+
+    html = re.sub(
+        r"\{%\s*if\s+(page\.url\s+[^%]+)\s*%\}(.*?)\{%\s*endif\s*%\}",
+        eval_url_condition,
+        html,
+        flags=re.DOTALL,
+    )
+
+    html = html.replace("{{ site.title }}", site_title)
+    html = html.replace("{{ site.description }}", site_desc)
+    html = html.replace("{{ page.title }}", page_title)
+    html = html.replace("{{ page.description }}", page_desc)
+    html = html.replace("{{ 'now' | date: \"%Y\" }}", str(datetime.datetime.now().year))
+
+    def rel_url_sub(match: re.Match) -> str:
+        return match.group(1).strip("'\"")
+
+    html = re.sub(r"\{\{\s*(['\"][^'\"]+['\"])\s*\|\s*relative_url\s*\}\}", rel_url_sub, html)
+    html = html.replace("{{ content }}", content)
+    return html
+
+
+def build_site_html() -> Path:
+    """Compiles markdown pages into static HTML in _site/ directory for local previewing."""
+    cmd_build()
+
+    site_dir = REPO_ROOT / "_site"
+    if site_dir.exists():
+        shutil.rmtree(site_dir)
+    site_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load site metadata
+    config_file = REPO_ROOT / "_config.yml"
+    config_data = {}
+    if config_file.exists():
+        config_data = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
+
+    site_title = config_data.get("title", "Fjord's resources")
+    site_desc = config_data.get("description", "")
+
+    # Load layout
+    layout_file = REPO_ROOT / "_layouts" / "default.html"
+    layout_tmpl = layout_file.read_text(encoding="utf-8") if layout_file.exists() else "{{ content }}"
+
+    # Copy assets
+    assets_src = REPO_ROOT / "assets"
+    if assets_src.exists():
+        shutil.copytree(assets_src, site_dir / "assets")
+
+    # Copy registry.json
+    if REGISTRY_JSON.exists():
+        shutil.copy2(REGISTRY_JSON, site_dir / "registry.json")
+
+    # Copy all SVGs
+    for svg_path in SKINS_DIR.rglob("*.svg"):
+        rel = svg_path.relative_to(REPO_ROOT)
+        target = site_dir / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(svg_path, target)
+
+    # Find and compile markdown files
+    md_files = [
+        REPO_ROOT / "index.md",
+        REPO_ROOT / "resources.md",
+        *SKINS_DIR.rglob("*.md"),
+    ]
+
+    for md_file in md_files:
+        if not md_file.exists():
+            continue
+
+        frontmatter, body = parse_frontmatter(md_file)
+        html_body = markdown.markdown(body, extensions=["fenced_code", "tables"])
+
+        rel = md_file.relative_to(REPO_ROOT)
+        if rel.name == "index.md":
+            page_url = "/" if rel.parent == Path(".") else f"/{rel.parent}/"
+        else:
+            page_url = f"/{rel.parent}/{rel.stem}" if rel.parent != Path(".") else f"/{rel.stem}"
+
+        ctx = {
+            "title": frontmatter.get("title", ""),
+            "description": frontmatter.get("description", ""),
+            "site_title": site_title,
+            "site_description": site_desc,
+            "url": page_url,
+        }
+        full_html = render_liquid_simple(layout_tmpl, ctx, html_body)
+
+        if rel.name == "index.md":
+            out_file = site_dir / rel.parent / "index.html"
+        else:
+            stem = rel.stem
+            parent = rel.parent
+            out_file = site_dir / parent / f"{stem}.html"
+            alt_out_file = site_dir / parent / stem / "index.html"
+            alt_out_file.parent.mkdir(parents=True, exist_ok=True)
+            alt_out_file.write_text(full_html, encoding="utf-8")
+
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text(full_html, encoding="utf-8")
+
+    print(f"HTML compilation complete in: {site_dir}")
+    return site_dir
+
+
+def cmd_preview(port: int = 8000, serve: bool = True, open_browser: bool = True) -> None:
+    """Builds HTML and starts a local web server to preview the site."""
+    site_dir = build_site_html()
+
+    if not serve:
+        print(f"Preview built at: {site_dir / 'index.html'}")
+        return
+
+    os.chdir(site_dir)
+
+    class CustomHandler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, format, *args):
+            # Suppress noisy GET log spam
+            pass
+
+    with socketserver.TCPServer(("", port), CustomHandler) as httpd:
+        url = f"http://127.0.0.1:{port}"
+        print(f"\n=======================================================")
+        print(f"  Live Preview Running at: {url}")
+        print(f"  Press Ctrl+C to stop the server.")
+        print(f"=======================================================\n")
+        if open_browser:
+            webbrowser.open(url)
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nPreview server stopped.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="AO3 Skins Registry CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # build
     subparsers.add_parser("build", help="Build/sync all SVG pages, registry catalog, and registry.json")
+
+    # build-html
+    subparsers.add_parser("build-html", help="Compile markdown into static HTML in _site/ without serving")
+
+    # preview
+    preview_parser = subparsers.add_parser("preview", help="Compile HTML and launch local preview server")
+    preview_parser.add_argument("--port", type=int, default=8000, help="Port to run preview server on (default: 8000)")
+    preview_parser.add_argument("--no-browser", action="store_true", help="Do not automatically open browser")
 
     # new
     new_parser = subparsers.add_parser("new", help="Scaffold a new skin")
@@ -420,6 +612,10 @@ def main() -> None:
 
     if args.command == "build":
         cmd_build()
+    elif args.command == "build-html":
+        build_site_html()
+    elif args.command == "preview":
+        cmd_preview(port=args.port, serve=True, open_browser=not args.no_browser)
     elif args.command == "new":
         cmd_new(args.name, args.category)
     elif args.command == "validate":

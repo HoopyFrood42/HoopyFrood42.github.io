@@ -1,0 +1,429 @@
+/* ==========================================================================
+   Elegant Minimal Theme Stylesheet for Fjord's AO3 Resources
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Light Mode */
+  --bg-body: #faf9f7;
+  --bg-surface: #ffffff;
+  --bg-header: rgba(250, 249, 247, 0.9);
+  --text-main: #242426;
+  --text-muted: #6b6b72;
+  --text-heading: #171719;
+
+  /* Refined Terracotta / Leather Accent */
+  --accent: #a04738;
+  --accent-hover: #7e3326;
+  --accent-soft: rgba(160, 71, 56, 0.08);
+
+  /* Borders & Dividers */
+  --border-subtle: #eae7e1;
+  --border-strong: #dcd7ce;
+
+  /* Code & Pre Blocks */
+  --code-bg: #f4f2ee;
+  --code-border: #e6e2da;
+  --code-text: #8e3223;
+  --pre-bg: #1e1e24;
+  --pre-text: #f3f3f6;
+  --pre-border: #2e2e38;
+
+  /* Typography */
+  --font-serif: "Charter", "Georgia", "Newsreader", "Cambria", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+
+  /* Layout */
+  --container-width: 860px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-body: #141417;
+    --bg-surface: #1b1b20;
+    --bg-header: rgba(20, 20, 23, 0.9);
+    --text-main: #e2e2e6;
+    --text-muted: #95959e;
+    --text-heading: #f4f4f7;
+
+    --accent: #e56d56;
+    --accent-hover: #f18772;
+    --accent-soft: rgba(229, 109, 86, 0.15);
+
+    --border-subtle: #292932;
+    --border-strong: #383844;
+
+    --code-bg: #23232b;
+    --code-border: #32323e;
+    --code-text: #f08976;
+    --pre-bg: #0d0d10;
+    --pre-text: #f3f3f6;
+    --pre-border: #25252e;
+  }
+}
+
+/* Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Header & Navigation */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--bg-header);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.85rem 1.5rem;
+}
+
+.header-container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.site-branding {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.site-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease;
+}
+
+.site-title:hover {
+  color: var(--accent);
+}
+
+.site-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.site-nav a {
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.site-nav a:hover {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.site-nav a.active,
+.site-nav a[aria-current="page"] {
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.site-nav a.active:hover,
+.site-nav a[aria-current="page"]:hover {
+  background-color: var(--accent-soft);
+  color: var(--accent-hover);
+}
+
+.site-nav a.nav-ext {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.site-nav a.nav-ext:hover {
+  color: var(--text-heading);
+  box-shadow: none;
+}
+
+/* Main Content Area */
+.site-main {
+  min-height: calc(100vh - 200px);
+  padding: 3rem 1.5rem 4rem;
+}
+
+.content-container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--text-heading);
+  line-height: 1.25;
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+h1:first-child {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 2.35rem;
+  font-weight: 700;
+  padding-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.65rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.35rem;
+  margin-top: 2.5rem;
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1.35rem;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration-color: var(--accent-hover);
+}
+
+/* Horizontal Rule */
+hr {
+  border: 0;
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 2.5rem 0;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 1.75rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 3px solid var(--accent);
+  background-color: var(--accent-soft);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--text-main);
+  font-style: italic;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Inline Code and Code Blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--code-border);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  background-color: var(--pre-bg);
+  color: var(--pre-text);
+  border: 1px solid var(--pre-border);
+  padding: 1.2rem 1.4rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  line-height: 1.55;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+/* Lists */
+ul, ol {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-left: 1.6rem;
+}
+
+li {
+  margin-bottom: 0.45rem;
+}
+
+li > p {
+  margin-bottom: 0.5rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+th {
+  background-color: var(--code-bg);
+  color: var(--text-heading);
+  font-weight: 600;
+  font-family: var(--font-serif);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:nth-child(even) td {
+  background-color: rgba(0, 0, 0, 0.015);
+}
+
+@media (prefers-color-scheme: dark) {
+  tr:nth-child(even) td {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+}
+
+/* Image & SVG Styling */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+/* Preview Card for SVGs */
+p:has(> img) {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 2.5rem 1.5rem 3.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.footer-container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+}
+
+.footer-meta {
+  margin-bottom: 0.5rem;
+}
+
+.footer-sublinks {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.footer-sublinks a {
+  color: var(--text-muted);
+  text-decoration: none;
+  margin: 0 0.25rem;
+}
+
+.footer-sublinks a:hover {
+  color: var(--accent);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-nav {
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+  }
+
+  .site-main {
+    padding: 2rem 1.2rem 3rem;
+  }
+
+  h1 {
+    font-size: 1.95rem;
+  }
+}
