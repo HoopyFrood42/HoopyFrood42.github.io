@@ -1,0 +1,41 @@
+{
+  "registry_version": "1.0.0",
+  "site_url": "https://hoopyfrood42.github.io",
+  "generated_at": "2026-09-08T02:43:41.620458+00:00",
+  "total_skins": 1,
+  "skins": [
+    {
+      "id": "wild-west-vibes",
+      "title": "Wild West Vibes",
+      "url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/",
+      "category": "workskin",
+      "version": "1.0.0",
+      "description": "Western-themed AO3 work skin featuring custom SVG assets and vintage typography.",
+      "tags": [
+        "western",
+        "vintage",
+        "decorative"
+      ],
+      "svgs": [
+        {
+          "id": "divider",
+          "title": "Chapter Divider",
+          "file": "divider.svg",
+          "description": "Thematic Western rope & cactus chapter divider",
+          "page_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/svgs/divider.html",
+          "raw_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/divider.svg",
+          "exists_on_disk": false
+        },
+        {
+          "id": "icon",
+          "title": "Corner Accent Icon",
+          "file": "icon.svg",
+          "description": "Western star badge accent",
+          "page_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/svgs/icon.html",
+          "raw_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/icon.svg",
+          "exists_on_disk": false
+        }
+      ]
+    }
+  ]
+}
