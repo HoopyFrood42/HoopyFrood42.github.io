@@ -1,7 +1,7 @@
 {
   "registry_version": "1.0.0",
   "site_url": "https://hoopyfrood42.github.io",
-  "generated_at": "2026-09-09T01:43:58.836193+00:00",
+  "generated_at": "2026-09-09T01:57:12.605474+00:00",
   "total_skins": 1,
   "skins": [
     {
@@ -18,22 +18,13 @@
       ],
       "svgs": [
         {
-          "id": "divider",
-          "title": "Chapter Divider",
-          "file": "divider.svg",
-          "description": "Thematic Western rope & cactus chapter divider",
-          "page_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/svgs/divider.html",
-          "raw_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/divider.svg",
-          "exists_on_disk": false
-        },
-        {
-          "id": "icon",
-          "title": "Corner Accent Icon",
-          "file": "icon.svg",
-          "description": "Western star badge accent",
-          "page_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/svgs/icon.html",
-          "raw_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/icon.svg",
-          "exists_on_disk": false
+          "id": "category-general",
+          "title": "Category General",
+          "file": "category-general.svg",
+          "description": "Wild West Vibes category general asset",
+          "page_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/svgs/category-general.html",
+          "raw_url": "https://hoopyfrood42.github.io/skins/wild-west-vibes/category-general.svg",
+          "exists_on_disk": true
         }
       ]
     }

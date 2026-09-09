@@ -309,6 +309,69 @@ def generate_registry_json(skins_data: List[Dict[str, Any]]) -> None:
     REGISTRY_JSON.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
+def generate_asset_list_markdown(skin_dir: Path, skin_id: str, svgs: List[Dict[str, Any]]) -> str:
+    """Generates the Markdown block for the Asset List section."""
+    if not svgs:
+        return "<!-- ASSET_LIST_START -->\n### Asset List\n\n*No SVG assets added yet. Add `.svg` files to this folder and run `uv run python scripts/registry.py build`.*\n<!-- ASSET_LIST_END -->"
+
+    items = []
+    for s in svgs:
+        if not isinstance(s, dict):
+            continue
+        svg_id = s.get("id") or slugify(Path(s.get("file", "asset")).stem)
+        svg_title = s.get("title", svg_id.replace("-", " ").title())
+        svg_file = s.get("file", f"{svg_id}.svg")
+        raw_url = f"{BASE_URL}/skins/{skin_id}/{svg_file}"
+        file_exists = (skin_dir / svg_file).exists()
+
+        preview = f"![{svg_title}](./{svg_file})" if file_exists else f"*(File `{svg_file}` not yet uploaded to folder)*"
+        item_md = (
+            f"- **{svg_title}:**\n"
+            f"  - Showcase Page: [{svg_title}](./svgs/{svg_id})\n"
+            f"  - Direct Asset URL: `{raw_url}`\n"
+            f"  - Markdown Preview: {preview}\n"
+        )
+        items.append(item_md)
+
+    content = "\n".join(items)
+    return f"<!-- ASSET_LIST_START -->\n### Asset List\n\n{content}\n<!-- ASSET_LIST_END -->"
+
+
+def update_skin_index_body(skin: Dict[str, Any]) -> None:
+    """Updates the '### Asset List' section in skins/<skin_id>/index.md."""
+    index_file = skin["dir"] / "index.md"
+    frontmatter, body = parse_frontmatter(index_file)
+    svgs = frontmatter.get("svgs") or []
+    asset_list_md = generate_asset_list_markdown(skin["dir"], skin["id"], svgs)
+
+    if "<!-- ASSET_LIST_START -->" in body and "<!-- ASSET_LIST_END -->" in body:
+        new_body = re.sub(
+            r"<!-- ASSET_LIST_START -->.*?<!-- ASSET_LIST_END -->",
+            asset_list_md,
+            body,
+            flags=re.DOTALL,
+        )
+    elif "### Asset List" in body:
+        new_body = re.sub(
+            r"### Asset List.*?(?=\n---|\n## |\Z)",
+            asset_list_md + "\n\n",
+            body,
+            flags=re.DOTALL,
+        )
+    elif "## SVG Assets" in body:
+        new_body = re.sub(
+            r"(## SVG Assets.*?\n)",
+            rf"\1\n{asset_list_md}\n\n",
+            body,
+            count=1,
+        )
+    else:
+        new_body = body + f"\n\n## SVG Assets\n\n{asset_list_md}\n"
+
+    write_frontmatter_file(index_file, frontmatter, new_body)
+    skin["body"] = new_body
+
+
 def cmd_build() -> None:
     """Builds and synchronizes the entire registry."""
     print("Scanning skins...")
@@ -318,6 +381,7 @@ def cmd_build() -> None:
         print(f"-> Processing skin: {skin['title']} ({skin['id']})")
         svgs_processed = generate_svg_pages(skin)
         skin["svgs"] = svgs_processed
+        update_skin_index_body(skin)
 
     print("Generating master registry catalog (skins/index.md)...")
     generate_registry_index(skins)

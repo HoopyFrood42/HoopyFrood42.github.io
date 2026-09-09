@@ -15,7 +15,7 @@ Each skin includes ready-to-use CSS, HTML guides, and individual SVG asset pages
 - **Type:** Workskin
 - **Description:** Western-themed AO3 work skin featuring custom SVG assets and vintage typography.
 - **Tags:** `western`, `vintage`, `decorative`
-- **SVG Pages (2):** [Chapter Divider](./wild-west-vibes/svgs/divider), [Corner Accent Icon](./wild-west-vibes/svgs/icon)
+- **SVG Pages (1):** [Category General](./wild-west-vibes/svgs/category-general)
 
 
 ---
