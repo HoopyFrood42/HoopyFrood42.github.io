@@ -2,22 +2,27 @@
 layout: default
 id: wild-west-vibes
 title: Wild West Vibes
-description: Western-themed AO3 work skin featuring custom SVG assets and vintage typography.
+description: Western-themed AO3 work skin featuring custom SVG assets and vintage
+  typography.
 category: workskin
 version: 1.0.0
 tags:
-  - western
-  - vintage
-  - decorative
+- western
+- vintage
+- decorative
 svgs:
-  - id: divider
-    title: Chapter Divider
-    file: divider.svg
-    description: Thematic Western rope & cactus chapter divider
-  - id: icon
-    title: Corner Accent Icon
-    file: icon.svg
-    description: Western star badge accent
+- id: divider
+  title: Chapter Divider
+  file: divider.svg
+  description: Thematic Western rope & cactus chapter divider
+- id: icon
+  title: Corner Accent Icon
+  file: icon.svg
+  description: Western star badge accent
+- id: category-general
+  title: Category General
+  file: category-general.svg
+  description: Wild West Vibes category general asset
 ---
 
 # Wild West Vibes
@@ -89,3 +94,4 @@ Copy and paste this CSS into your AO3 Work Skin:
 ---
 
 [← Back to Skins Directory](/skins/) | [Home](/)
+
