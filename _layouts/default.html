@@ -50,10 +50,30 @@
     <!-- Active Navigation Highlight Script -->
     <script>
       (function() {
-        const path = window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
+        const fullPath = window.location.pathname;
+        let activeKey = 'home';
+        
+        if (fullPath.includes('/skins')) {
+          activeKey = 'skins';
+        } else if (fullPath.includes('/resources')) {
+          activeKey = 'resources';
+        } else {
+          activeKey = 'home';
+        }
+
         document.querySelectorAll('.site-nav a:not(.nav-ext)').forEach(link => {
-          const href = link.getAttribute('href').replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
-          if ((href === '/' && path === '/') || (href !== '/' && path.startsWith(href))) {
+          const href = link.getAttribute('href') || '';
+          let isMatch = false;
+
+          if (activeKey === 'skins' && href.includes('skins')) {
+            isMatch = true;
+          } else if (activeKey === 'resources' && href.includes('resources')) {
+            isMatch = true;
+          } else if (activeKey === 'home' && (href === '/' || href.endsWith('/index.html') || href === './' || href === 'index.html')) {
+            isMatch = true;
+          }
+
+          if (isMatch) {
             link.classList.add('active');
             link.setAttribute('aria-current', 'page');
           } else {

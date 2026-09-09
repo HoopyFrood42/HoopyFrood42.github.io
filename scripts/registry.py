@@ -464,8 +464,20 @@ def render_liquid_simple(template: str, context: Dict[str, Any], content: str) -
     html = html.replace("{{ page.description }}", page_desc)
     html = html.replace("{{ 'now' | date: \"%Y\" }}", str(datetime.datetime.now().year))
 
+    relative_root = context.get("relative_root", ".")
+
     def rel_url_sub(match: re.Match) -> str:
-        return match.group(1).strip("'\"")
+        raw_path = match.group(1).strip("'\"")
+        if raw_path.startswith("/"):
+            if raw_path == "/":
+                return f"{relative_root}/index.html" if relative_root != "." else "./index.html"
+            sub = raw_path.lstrip("/")
+            if sub.endswith("/"):
+                sub += "index.html"
+            elif not sub.endswith(".html") and not sub.endswith(".css") and not sub.endswith(".json") and not sub.endswith(".svg"):
+                sub += ".html"
+            return f"{relative_root}/{sub}"
+        return raw_path
 
     html = re.sub(r"\{\{\s*(['\"][^'\"]+['\"])\s*\|\s*relative_url\s*\}\}", rel_url_sub, html)
     html = html.replace("{{ content }}", content)
@@ -527,8 +539,18 @@ def build_site_html() -> Path:
         rel = md_file.relative_to(REPO_ROOT)
         if rel.name == "index.md":
             page_url = "/" if rel.parent == Path(".") else f"/{rel.parent}/"
+            out_file = site_dir / rel.parent / "index.html"
+            alt_out_file = None
         else:
-            page_url = f"/{rel.parent}/{rel.stem}" if rel.parent != Path(".") else f"/{rel.stem}"
+            stem = rel.stem
+            parent = rel.parent
+            page_url = f"/{parent}/{stem}" if parent != Path(".") else f"/{stem}"
+            out_file = site_dir / parent / f"{stem}.html"
+            alt_out_file = site_dir / parent / stem / "index.html"
+
+        # Calculate relative depth to site_dir for offline file:// protocol viewing
+        depth = len(out_file.relative_to(site_dir).parent.parts)
+        relative_root = "." if depth == 0 else "/".join([".."] * depth)
 
         ctx = {
             "title": frontmatter.get("title", ""),
@@ -536,21 +558,20 @@ def build_site_html() -> Path:
             "site_title": site_title,
             "site_description": site_desc,
             "url": page_url,
+            "relative_root": relative_root,
         }
         full_html = render_liquid_simple(layout_tmpl, ctx, html_body)
 
-        if rel.name == "index.md":
-            out_file = site_dir / rel.parent / "index.html"
-        else:
-            stem = rel.stem
-            parent = rel.parent
-            out_file = site_dir / parent / f"{stem}.html"
-            alt_out_file = site_dir / parent / stem / "index.html"
-            alt_out_file.parent.mkdir(parents=True, exist_ok=True)
-            alt_out_file.write_text(full_html, encoding="utf-8")
-
         out_file.parent.mkdir(parents=True, exist_ok=True)
         out_file.write_text(full_html, encoding="utf-8")
+
+        if alt_out_file:
+            alt_depth = len(alt_out_file.relative_to(site_dir).parent.parts)
+            alt_relative_root = "." if alt_depth == 0 else "/".join([".."] * alt_depth)
+            ctx["relative_root"] = alt_relative_root
+            alt_html = render_liquid_simple(layout_tmpl, ctx, html_body)
+            alt_out_file.parent.mkdir(parents=True, exist_ok=True)
+            alt_out_file.write_text(alt_html, encoding="utf-8")
 
     print(f"HTML compilation complete in: {site_dir}")
     return site_dir
