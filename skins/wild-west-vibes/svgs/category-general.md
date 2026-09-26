@@ -10,14 +10,14 @@ raw_url: https://hoopyfrood42.github.io/skins/wild-west-vibes/category-general.s
 
 # Category General
 
-*Part of the [**Wild West Vibes**](../) AO3 skin collection.*
+*Part of the [**Wild West Vibes**](/skins/wild-west-vibes/) AO3 skin collection.*
 
 Wild West Vibes category general asset
 
 ---
 
 ### Visual Preview
-![Category General](../category-general.svg)
+![Category General](/skins/wild-west-vibes/category-general.svg)
 
 ---
 
@@ -40,5 +40,5 @@ https://hoopyfrood42.github.io/skins/wild-west-vibes/category-general.svg
 
 ---
 
-[← Back to Wild West Vibes](../) | [All Skins](/skins/)
+[← Back to Wild West Vibes](/skins/wild-west-vibes/) | [All Skins](/skins/)
 

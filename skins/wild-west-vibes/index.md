@@ -35,9 +35,9 @@ https://hoopyfrood42.github.io/skins/wild-west-vibes/<filename>.svg
 ### Asset List
 
 - **Category General:**
-  - Showcase Page: [Category General](./svgs/category-general)
+  - Showcase Page: [Category General](/skins/wild-west-vibes/svgs/category-general)
   - Direct Asset URL: `https://hoopyfrood42.github.io/skins/wild-west-vibes/category-general.svg`
-  - Markdown Preview: ![Category General](./category-general.svg)
+  - Markdown Preview: ![Category General](/skins/wild-west-vibes/category-general.svg)
 
 <!-- ASSET_LIST_END -->
 
@@ -84,5 +84,12 @@ Copy and paste this CSS into your AO3 Work Skin:
 ---
 
 [← Back to Skins Directory](/skins/) | [Home](/)
+
+
+
+
+
+
+
 
 

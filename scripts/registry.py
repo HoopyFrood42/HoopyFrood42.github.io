@@ -152,7 +152,7 @@ def generate_svg_pages(skin: Dict[str, Any]) -> List[Dict[str, Any]]:
         file_exists = (skin_dir / svg_file).exists()
 
         preview_block = (
-            f"![{svg_title}](../{svg_file})"
+            f"![{svg_title}](/skins/{skin_id}/{svg_file})"
             if file_exists
             else "> *SVG asset file not yet uploaded to repository. Place `"
             + svg_file
@@ -163,7 +163,7 @@ def generate_svg_pages(skin: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         svg_page_content = f"""# {svg_title}
 
-*Part of the [**{skin_title}**](../) AO3 skin collection.*
+*Part of the [**{skin_title}**](/skins/{skin_id}/) AO3 skin collection.*
 
 {description}
 
@@ -193,7 +193,7 @@ Use this URL directly in your browser or within AO3 work skins:
 
 ---
 
-[← Back to {skin_title}](../) | [All Skins](/skins/)
+[← Back to {skin_title}](/skins/{skin_id}/) | [All Skins](/skins/)
 """
         svg_page_file = svg_pages_dir / f"{svg_id}.md"
         svg_page_fm = {
@@ -213,10 +213,42 @@ Use this URL directly in your browser or within AO3 work skins:
             "file": svg_file,
             "description": description,
             "raw_url": raw_url,
-            "page_rel_url": f"./svgs/{svg_id}",
+            "page_rel_url": f"/skins/{skin_id}/svgs/{svg_id}",
             "page_url": page_url,
             "exists_on_disk": file_exists,
         })
+
+    # Generate svgs/index.md gallery page so the svgs/ directory has a themed landing page
+    gallery_items = []
+    for g in generated_svgs:
+        preview = f"![{g['title']}](/skins/{skin_id}/{g['file']})" if g["exists_on_disk"] else f"*(File `{g['file']}` not yet uploaded)*"
+        gallery_items.append(
+            f"### [{g['title']}](/skins/{skin_id}/svgs/{g['id']})\n\n"
+            f"- **Direct Asset URL:** `{g['raw_url']}`\n"
+            f"- **Description:** {g['description']}\n"
+            f"- **Preview:**\n\n{preview}\n"
+        )
+    gallery_body = "\n---\n\n".join(gallery_items) if gallery_items else "*No SVG assets registered yet.*"
+
+    svg_index_content = f"""# {skin_title} — SVG Assets Gallery
+
+Browse and preview all SVG icons, chapter dividers, and graphic assets for the [**{skin_title}**](/skins/{skin_id}/) AO3 skin.
+
+---
+
+{gallery_body}
+
+---
+
+[← Back to {skin_title}](/skins/{skin_id}/) | [All Skins](/skins/)
+"""
+    svg_index_fm = {
+        "layout": "default",
+        "title": f"SVG Gallery ({skin_title})",
+        "skin_id": skin_id,
+        "skin_title": skin_title,
+    }
+    write_frontmatter_file(svg_pages_dir / "index.md", svg_index_fm, svg_index_content)
 
     return generated_svgs
 
@@ -238,11 +270,11 @@ def generate_registry_index(skins_data: List[Dict[str, Any]]) -> None:
 
         svg_links = []
         for svg in s.get("svgs", []):
-            svg_links.append(f"[{svg['title']}](./{skin_id}/svgs/{svg['id']})")
+            svg_links.append(f"[{svg['title']}](/skins/{skin_id}/svgs/{svg['id']})")
         svg_links_str = ", ".join(svg_links) if svg_links else "*No SVGs yet*"
 
         row = (
-            f"### [{title}](./{skin_id}/)\n\n"
+            f"### [{title}](/skins/{skin_id}/)\n\n"
             f"- **Type:** {cat}\n"
             f"- **Description:** {desc}\n"
             f"- **Tags:** {tags_str}\n"
@@ -324,10 +356,10 @@ def generate_asset_list_markdown(skin_dir: Path, skin_id: str, svgs: List[Dict[s
         raw_url = f"{BASE_URL}/skins/{skin_id}/{svg_file}"
         file_exists = (skin_dir / svg_file).exists()
 
-        preview = f"![{svg_title}](./{svg_file})" if file_exists else f"*(File `{svg_file}` not yet uploaded to folder)*"
+        preview = f"![{svg_title}](/skins/{skin_id}/{svg_file})" if file_exists else f"*(File `{svg_file}` not yet uploaded to folder)*"
         item_md = (
             f"- **{svg_title}:**\n"
-            f"  - Showcase Page: [{svg_title}](./svgs/{svg_id})\n"
+            f"  - Showcase Page: [{svg_title}](/skins/{skin_id}/svgs/{svg_id})\n"
             f"  - Direct Asset URL: `{raw_url}`\n"
             f"  - Markdown Preview: {preview}\n"
         )
@@ -528,20 +560,8 @@ def render_liquid_simple(template: str, context: Dict[str, Any], content: str) -
     html = html.replace("{{ page.description }}", page_desc)
     html = html.replace("{{ 'now' | date: \"%Y\" }}", str(datetime.datetime.now().year))
 
-    relative_root = context.get("relative_root", ".")
-
     def rel_url_sub(match: re.Match) -> str:
-        raw_path = match.group(1).strip("'\"")
-        if raw_path.startswith("/"):
-            if raw_path == "/":
-                return f"{relative_root}/index.html" if relative_root != "." else "./index.html"
-            sub = raw_path.lstrip("/")
-            if sub.endswith("/"):
-                sub += "index.html"
-            elif not sub.endswith(".html") and not sub.endswith(".css") and not sub.endswith(".json") and not sub.endswith(".svg"):
-                sub += ".html"
-            return f"{relative_root}/{sub}"
-        return raw_path
+        return match.group(1).strip("'\"")
 
     html = re.sub(r"\{\{\s*(['\"][^'\"]+['\"])\s*\|\s*relative_url\s*\}\}", rel_url_sub, html)
     html = html.replace("{{ content }}", content)
@@ -612,17 +632,12 @@ def build_site_html() -> Path:
             out_file = site_dir / parent / f"{stem}.html"
             alt_out_file = site_dir / parent / stem / "index.html"
 
-        # Calculate relative depth to site_dir for offline file:// protocol viewing
-        depth = len(out_file.relative_to(site_dir).parent.parts)
-        relative_root = "." if depth == 0 else "/".join([".."] * depth)
-
         ctx = {
             "title": frontmatter.get("title", ""),
             "description": frontmatter.get("description", ""),
             "site_title": site_title,
             "site_description": site_desc,
             "url": page_url,
-            "relative_root": relative_root,
         }
         full_html = render_liquid_simple(layout_tmpl, ctx, html_body)
 
@@ -630,12 +645,8 @@ def build_site_html() -> Path:
         out_file.write_text(full_html, encoding="utf-8")
 
         if alt_out_file:
-            alt_depth = len(alt_out_file.relative_to(site_dir).parent.parts)
-            alt_relative_root = "." if alt_depth == 0 else "/".join([".."] * alt_depth)
-            ctx["relative_root"] = alt_relative_root
-            alt_html = render_liquid_simple(layout_tmpl, ctx, html_body)
             alt_out_file.parent.mkdir(parents=True, exist_ok=True)
-            alt_out_file.write_text(alt_html, encoding="utf-8")
+            alt_out_file.write_text(full_html, encoding="utf-8")
 
     print(f"HTML compilation complete in: {site_dir}")
     return site_dir
